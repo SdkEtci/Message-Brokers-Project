@@ -1,0 +1,17 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  order-service:
+    build: ./order-service
+    depends_on:
+      - rabbitmq
+
+  invoice-service:
+    build: ./invoice-service
+    depends_on:
+      - rabbitmq
