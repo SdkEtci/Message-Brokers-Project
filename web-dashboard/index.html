@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -123,6 +123,14 @@
             transform: translateY(0);
         }
 
+        .btn.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .btn.warning {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+
         .order-form {
             display: grid;
             gap: 15px;
@@ -185,7 +193,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             margin: 20px 0;
             flex-wrap: wrap;
         }
@@ -194,20 +202,27 @@
             background: rgba(255,255,255,0.1);
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             min-width: 120px;
             text-align: center;
             backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .service-box:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
         }
 
         .arrow {
             color: white;
             font-size: 1.5rem;
+            font-weight: bold;
         }
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -226,6 +241,14 @@
             color: #4CAF50;
         }
 
+        .stat-number.warning {
+            color: #ff9800;
+        }
+
+        .stat-number.error {
+            color: #f44336;
+        }
+
         .rabbitmq-link {
             display: inline-block;
             background: rgba(255,255,255,0.2);
@@ -239,6 +262,28 @@
 
         .rabbitmq-link:hover {
             background: rgba(255,255,255,0.3);
+        }
+
+        .payment-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .payment-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .payment-failed {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border-left: 4px solid #f44336;
         }
 
         @media (max-width: 768px) {
@@ -260,30 +305,38 @@
     <div class="container">
         <div class="header">
             <h1>🚀 Microservices Monitor</h1>
-            <p>Order & Invoice System Dashboard</p>
+            <p>Order → Payment → Invoice System Dashboard</p>
         </div>
 
         <div class="architecture">
             <h2>System Architecture</h2>
             <div class="architecture-diagram">
                 <div class="service-box">
-                    <h4>Order Service</h4>
-                    <p>Port: Dynamic</p>
+                    <h4>📦 Order Service</h4>
+                    <p>Creates Orders</p>
+                    <small>Queue: orders</small>
                 </div>
                 <div class="arrow">→</div>
                 <div class="service-box">
-                    <h4>RabbitMQ</h4>
-                    <p>Port: 5672</p>
-                    <p>Management: 15672</p>
+                    <h4>🐰 RabbitMQ</h4>
+                    <p>Message Broker</p>
+                    <small>Port: 5672/15672</small>
                 </div>
                 <div class="arrow">→</div>
                 <div class="service-box">
-                    <h4>Invoice Service</h4>
-                    <p>Port: Dynamic</p>
+                    <h4>💳 Payment Service</h4>
+                    <p>Processes Payments</p>
+                    <small>80% Success Rate</small>
+                </div>
+                <div class="arrow">→</div>
+                <div class="service-box">
+                    <h4>📄 Invoice Service</h4>
+                    <p>Creates Invoices</p>
+                    <small>Queue: payments</small>
                 </div>
             </div>
             <a href="http://localhost:15672" target="_blank" class="rabbitmq-link">
-                Open RabbitMQ Management UI (guest/guest)
+                🐰 Open RabbitMQ Management UI (guest/guest)
             </a>
         </div>
 
@@ -291,13 +344,13 @@
             <div class="card">
                 <h3>
                     <span class="status-indicator status-unknown"></span>
-                    RabbitMQ Status
+                    🐰 RabbitMQ Status
                 </h3>
                 <div class="service-info">
                     <div><span>Management UI:</span><span>http://localhost:15672</span></div>
                     <div><span>AMQP Port:</span><span>5672</span></div>
-                    <div><span>Default Credentials:</span><span>guest/guest</span></div>
-                    <div><span>Queue Name:</span><span>orders</span></div>
+                    <div><span>Credentials:</span><span>guest/guest</span></div>
+                    <div><span>Queues:</span><span>orders, payments</span></div>
                 </div>
                 <button class="btn" onclick="checkRabbitMQ()">Check Connection</button>
             </div>
@@ -305,12 +358,12 @@
             <div class="card">
                 <h3>
                     <span class="status-indicator status-running"></span>
-                    Order Service
+                    📦 Order Service
                 </h3>
                 <div class="service-info">
-                    <div><span>Status:</span><span id="order-status">Monitoring...</span></div>
-                    <div><span>Function:</span><span>Sends orders to queue</span></div>
-                    <div><span>Queue:</span><span>orders</span></div>
+                    <div><span>Status:</span><span id="order-status">Ready to send</span></div>
+                    <div><span>Function:</span><span>Creates & sends orders</span></div>
+                    <div><span>Target Queue:</span><span>orders</span></div>
                 </div>
                 <div class="order-form">
                     <div class="form-group">
@@ -318,29 +371,44 @@
                         <input type="text" id="product" value="Kitap" placeholder="Enter product name">
                     </div>
                     <div class="form-group">
-                        <label for="price">Price:</label>
+                        <label for="price">Price (₺):</label>
                         <input type="number" id="price" value="100" placeholder="Enter price">
                     </div>
-                    <button class="btn" onclick="simulateOrder()">Send Test Order</button>
+                    <button class="btn success" onclick="simulateOrder()">📦 Send Order</button>
                 </div>
             </div>
 
             <div class="card">
                 <h3>
                     <span class="status-indicator status-running"></span>
-                    Invoice Service
+                    💳 Payment Service
                 </h3>
                 <div class="service-info">
-                    <div><span>Status:</span><span id="invoice-status">Listening...</span></div>
-                    <div><span>Function:</span><span>Processes orders from queue</span></div>
-                    <div><span>Queue:</span><span>orders</span></div>
+                    <div><span>Status:</span><span id="payment-status">Listening for orders</span></div>
+                    <div><span>Success Rate:</span><span>80% (simulated)</span></div>
+                    <div><span>Input Queue:</span><span>orders</span></div>
+                    <div><span>Output Queue:</span><span>payments</span></div>
+                </div>
+                <div id="payment-results"></div>
+                <button class="btn" onclick="checkPaymentService()">Check Service</button>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-running"></span>
+                    📄 Invoice Service
+                </h3>
+                <div class="service-info">
+                    <div><span>Status:</span><span id="invoice-status">Listening for payments</span></div>
+                    <div><span>Function:</span><span>Creates invoices from successful payments</span></div>
+                    <div><span>Input Queue:</span><span>payments</span></div>
                 </div>
                 <button class="btn" onclick="checkInvoiceService()">Check Service</button>
             </div>
 
             <div class="card">
                 <h3>
-                    📊 Statistics
+                    📊 System Statistics
                 </h3>
                 <div class="stats">
                     <div class="stat-item">
@@ -348,11 +416,19 @@
                         <div>Orders Sent</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" id="invoices-processed">0</div>
-                        <div>Invoices Processed</div>
+                        <div class="stat-number" id="payments-success">0</div>
+                        <div>Successful Payments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number error" id="payments-failed">0</div>
+                        <div>Failed Payments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="invoices-created">0</div>
+                        <div>Invoices Created</div>
                     </div>
                 </div>
-                <button class="btn" onclick="resetStats()">Reset Statistics</button>
+                <button class="btn warning" onclick="resetStats()">Reset Statistics</button>
             </div>
         </div>
 
@@ -374,6 +450,7 @@
                 <br>
                 <div style="margin: 5px 0;"><strong>2. View container logs:</strong></div>
                 <div style="color: #666;">docker-compose logs -f order-service</div>
+                <div style="color: #666;">docker-compose logs -f payment-service</div>
                 <div style="color: #666;">docker-compose logs -f invoice-service</div>
                 <br>
                 <div style="margin: 5px 0;"><strong>3. Stop the system:</strong></div>
@@ -387,7 +464,9 @@
 
     <script>
         let ordersSent = 0;
-        let invoicesProcessed = 0;
+        let paymentsSuccess = 0;
+        let paymentsFailed = 0;
+        let invoicesCreated = 0;
 
         function addLog(message, type = 'info') {
             const logs = document.getElementById('logs');
@@ -399,10 +478,18 @@
             if (type === 'error') color = '#ff6b6b';
             if (type === 'warning') color = '#ffa726';
             if (type === 'success') color = '#4CAF50';
+            if (type === 'payment') color = '#2196F3';
             
             logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> <span style="color: ${color};">${message}</span>`;
             logs.appendChild(logEntry);
             logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('orders-sent').textContent = ordersSent;
+            document.getElementById('payments-success').textContent = paymentsSuccess;
+            document.getElementById('payments-failed').textContent = paymentsFailed;
+            document.getElementById('invoices-created').textContent = invoicesCreated;
         }
 
         function simulateOrder() {
@@ -416,65 +503,117 @@
             };
 
             ordersSent++;
-            document.getElementById('orders-sent').textContent = ordersSent;
+            updateStats();
             
-            addLog(`Order sent: ${JSON.stringify(order)}`, 'success');
+            addLog(`📦 Order created and sent to queue: ID=${order.id}, Product=${order.urun}, Price=₺${order.fiyat}`, 'success');
             
-            // Simulate invoice processing after a short delay
+            // Simulate payment processing
             setTimeout(() => {
-                invoicesProcessed++;
-                document.getElementById('invoices-processed').textContent = invoicesProcessed;
-                addLog(`Invoice created for order ${order.id}: ${order.urun} - $${order.fiyat}`, 'info');
-            }, 1000 + Math.random() * 2000);
+                const isPaymentSuccess = Math.random() > 0.2; // 80% success rate
+                const paymentId = Math.floor(Math.random() * 10000);
+                
+                if (isPaymentSuccess) {
+                    paymentsSuccess++;
+                    addLog(`💳 Payment processed successfully: PaymentID=${paymentId}, OrderID=${order.id}, Amount=₺${order.fiyat}`, 'payment');
+                    
+                    // Show payment result in payment service card
+                    showPaymentResult(order, paymentId, true);
+                    
+                    // Simulate invoice creation
+                    setTimeout(() => {
+                        invoicesCreated++;
+                        const invoiceId = Math.floor(Math.random() * 10000);
+                        addLog(`📄 Invoice created: InvoiceID=${invoiceId}, OrderID=${order.id}, Amount=₺${order.fiyat}`, 'success');
+                        updateStats();
+                    }, 1000 + Math.random() * 1000);
+                    
+                } else {
+                    paymentsFailed++;
+                    addLog(`❌ Payment failed: OrderID=${order.id}, Amount=₺${order.fiyat} - Payment processing error`, 'error');
+                    showPaymentResult(order, paymentId, false);
+                }
+                updateStats();
+            }, 1500 + Math.random() * 2000);
+        }
+
+        function showPaymentResult(order, paymentId, success) {
+            const resultsDiv = document.getElementById('payment-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = success ? 'payment-status payment-success' : 'payment-status payment-failed';
+            
+            resultDiv.innerHTML = success 
+                ? `✅ Payment ${paymentId}: ₺${order.fiyat} - SUCCESS`
+                : `❌ Payment ${paymentId}: ₺${order.fiyat} - FAILED`;
+            
+            resultsDiv.appendChild(resultDiv);
+            
+            // Remove old results (keep only last 3)
+            const results = resultsDiv.children;
+            if (results.length > 3) {
+                resultsDiv.removeChild(results[0]);
+            }
         }
 
         function checkRabbitMQ() {
-            addLog('Checking RabbitMQ connection...', 'info');
+            addLog('🔍 Checking RabbitMQ connection...', 'info');
             
-            // Simulate connection check
             setTimeout(() => {
-                const isConnected = Math.random() > 0.2; // 80% success rate
+                const isConnected = Math.random() > 0.2;
                 if (isConnected) {
-                    addLog('✅ RabbitMQ connection successful', 'success');
-                    document.querySelector('.card h3 .status-indicator').className = 'status-indicator status-running';
+                    addLog('✅ RabbitMQ connection successful - Queues: orders, payments', 'success');
+                    document.querySelector('#rabbitmq-status .status-indicator').className = 'status-indicator status-running';
                 } else {
                     addLog('❌ RabbitMQ connection failed - Check if Docker containers are running', 'error');
-                    document.querySelector('.card h3 .status-indicator').className = 'status-indicator status-stopped';
                 }
             }, 1000);
         }
 
-        function checkInvoiceService() {
-            addLog('Checking Invoice Service status...', 'info');
+        function checkPaymentService() {
+            addLog('🔍 Checking Payment Service status...', 'info');
             
             setTimeout(() => {
-                addLog('✅ Invoice Service is listening on queue: orders', 'success');
+                addLog('✅ Payment Service is active - Listening on orders queue, sending to payments queue', 'success');
+                addLog('💡 Payment Service simulates 80% success rate for realistic testing', 'info');
+            }, 500);
+        }
+
+        function checkInvoiceService() {
+            addLog('🔍 Checking Invoice Service status...', 'info');
+            
+            setTimeout(() => {
+                addLog('✅ Invoice Service is listening on payments queue for successful payments', 'success');
             }, 500);
         }
 
         function resetStats() {
             ordersSent = 0;
-            invoicesProcessed = 0;
-            document.getElementById('orders-sent').textContent = '0';
-            document.getElementById('invoices-processed').textContent = '0';
-            addLog('Statistics reset', 'warning');
+            paymentsSuccess = 0;
+            paymentsFailed = 0;
+            invoicesCreated = 0;
+            updateStats();
+            
+            // Clear payment results
+            document.getElementById('payment-results').innerHTML = '';
+            
+            addLog('🔄 All statistics reset to zero', 'warning');
         }
 
         function clearLogs() {
-            document.getElementById('logs').innerHTML = '<div class="log-entry"><span class="timestamp">[System Ready]</span> Logs cleared</div>';
+            document.getElementById('logs').innerHTML = '<div class="log-entry"><span class="timestamp">[System Ready]</span> Logs cleared - System ready</div>';
         }
 
         // Auto-generate some sample activity
         setInterval(() => {
-            if (Math.random() > 0.7) {
-                addLog('Heartbeat: Services are running normally', 'info');
+            if (Math.random() > 0.8) {
+                addLog('💓 Heartbeat: All services running normally', 'info');
             }
-        }, 30000);
+        }, 45000);
 
         // Initialize
-        addLog('Welcome to Microservices Monitor!', 'success');
-        addLog('Your system uses RabbitMQ for message queuing between Order and Invoice services', 'info');
-        addLog('Use "docker-compose up --build" to start your services', 'warning');
+        addLog('🚀 Microservices Monitor initialized successfully!', 'success');
+        addLog('📋 System Architecture: Order → Payment → Invoice flow', 'info');
+        addLog('🐰 RabbitMQ manages message queues between services', 'info');
+        addLog('💡 Use "docker-compose up --build" to start all services', 'warning');
     </script>
 </body>
 </html>

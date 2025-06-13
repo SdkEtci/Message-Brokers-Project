@@ -10,24 +10,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   order-service:
     build: ./order-service
+    ports:
+      - "3000:3000"
     depends_on:
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
 
   payment-service:
     build: ./payment-service
     depends_on:
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
 
   invoice-service:
     build: ./invoice-service
     depends_on:
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
 
   web-dashboard:
     build: ./web-dashboard
@@ -37,3 +49,4 @@ services:
       - order-service
       - payment-service
       - invoice-service
+    restart: unless-stopped
