@@ -5,13 +5,35 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   order-service:
     build: ./order-service
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+
+  payment-service:
+    build: ./payment-service
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   invoice-service:
     build: ./invoice-service
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+
+  web-dashboard:
+    build: ./web-dashboard
+    ports:
+      - "8080:80"
+    depends_on:
+      - order-service
+      - payment-service
+      - invoice-service

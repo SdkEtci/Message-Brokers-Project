@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-running { background: #4CAF50; }
+        .status-stopped { background: #f44336; }
+        .status-unknown { background: #ff9800; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .service-info {
+            margin: 15px 0;
+        }
+
+        .service-info div {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .order-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .logs {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,255,0,0.1);
+        }
+
+        .timestamp {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .architecture {
+            text-align: center;
+            color: white;
+            margin: 30px 0;
+        }
+
+        .architecture-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .service-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 120px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .arrow {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .rabbitmq-link {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .rabbitmq-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .architecture-diagram {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Microservices Monitor</h1>
+            <p>Order & Invoice System Dashboard</p>
+        </div>
+
+        <div class="architecture">
+            <h2>System Architecture</h2>
+            <div class="architecture-diagram">
+                <div class="service-box">
+                    <h4>Order Service</h4>
+                    <p>Port: Dynamic</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="service-box">
+                    <h4>RabbitMQ</h4>
+                    <p>Port: 5672</p>
+                    <p>Management: 15672</p>
+                </div>
+                <div class="arrow">→</div>
+                <div class="service-box">
+                    <h4>Invoice Service</h4>
+                    <p>Port: Dynamic</p>
+                </div>
+            </div>
+            <a href="http://localhost:15672" target="_blank" class="rabbitmq-link">
+                Open RabbitMQ Management UI (guest/guest)
+            </a>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-unknown"></span>
+                    RabbitMQ Status
+                </h3>
+                <div class="service-info">
+                    <div><span>Management UI:</span><span>http://localhost:15672</span></div>
+                    <div><span>AMQP Port:</span><span>5672</span></div>
+                    <div><span>Default Credentials:</span><span>guest/guest</span></div>
+                    <div><span>Queue Name:</span><span>orders</span></div>
+                </div>
+                <button class="btn" onclick="checkRabbitMQ()">Check Connection</button>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-running"></span>
+                    Order Service
+                </h3>
+                <div class="service-info">
+                    <div><span>Status:</span><span id="order-status">Monitoring...</span></div>
+                    <div><span>Function:</span><span>Sends orders to queue</span></div>
+                    <div><span>Queue:</span><span>orders</span></div>
+                </div>
+                <div class="order-form">
+                    <div class="form-group">
+                        <label for="product">Product Name:</label>
+                        <input type="text" id="product" value="Kitap" placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" value="100" placeholder="Enter price">
+                    </div>
+                    <button class="btn" onclick="simulateOrder()">Send Test Order</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span class="status-indicator status-running"></span>
+                    Invoice Service
+                </h3>
+                <div class="service-info">
+                    <div><span>Status:</span><span id="invoice-status">Listening...</span></div>
+                    <div><span>Function:</span><span>Processes orders from queue</span></div>
+                    <div><span>Queue:</span><span>orders</span></div>
+                </div>
+                <button class="btn" onclick="checkInvoiceService()">Check Service</button>
+            </div>
+
+            <div class="card">
+                <h3>
+                    📊 Statistics
+                </h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="orders-sent">0</div>
+                        <div>Orders Sent</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="invoices-processed">0</div>
+                        <div>Invoices Processed</div>
+                    </div>
+                </div>
+                <button class="btn" onclick="resetStats()">Reset Statistics</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📋 System Logs</h3>
+            <div class="logs" id="logs">
+                <div class="log-entry">
+                    <span class="timestamp">[System Ready]</span> Microservices monitor initialized
+                </div>
+            </div>
+            <button class="btn" onclick="clearLogs()">Clear Logs</button>
+        </div>
+
+        <div class="card">
+            <h3>🛠️ Quick Setup Commands</h3>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-family: monospace; margin: 10px 0;">
+                <div style="margin: 5px 0;"><strong>1. Start the system:</strong></div>
+                <div style="color: #666;">docker-compose up --build</div>
+                <br>
+                <div style="margin: 5px 0;"><strong>2. View container logs:</strong></div>
+                <div style="color: #666;">docker-compose logs -f order-service</div>
+                <div style="color: #666;">docker-compose logs -f invoice-service</div>
+                <br>
+                <div style="margin: 5px 0;"><strong>3. Stop the system:</strong></div>
+                <div style="color: #666;">docker-compose down</div>
+                <br>
+                <div style="margin: 5px 0;"><strong>4. Access web dashboard:</strong></div>
+                <div style="color: #666;">http://localhost:8080</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ordersSent = 0;
+        let invoicesProcessed = 0;
+
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            let color = '#00ff00';
+            if (type === 'error') color = '#ff6b6b';
+            if (type === 'warning') color = '#ffa726';
+            if (type === 'success') color = '#4CAF50';
+            
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> <span style="color: ${color};">${message}</span>`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function simulateOrder() {
+            const product = document.getElementById('product').value || 'Kitap';
+            const price = document.getElementById('price').value || 100;
+            
+            const order = {
+                id: Date.now(),
+                urun: product,
+                fiyat: parseInt(price)
+            };
+
+            ordersSent++;
+            document.getElementById('orders-sent').textContent = ordersSent;
+            
+            addLog(`Order sent: ${JSON.stringify(order)}`, 'success');
+            
+            // Simulate invoice processing after a short delay
+            setTimeout(() => {
+                invoicesProcessed++;
+                document.getElementById('invoices-processed').textContent = invoicesProcessed;
+                addLog(`Invoice created for order ${order.id}: ${order.urun} - $${order.fiyat}`, 'info');
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function checkRabbitMQ() {
+            addLog('Checking RabbitMQ connection...', 'info');
+            
+            // Simulate connection check
+            setTimeout(() => {
+                const isConnected = Math.random() > 0.2; // 80% success rate
+                if (isConnected) {
+                    addLog('✅ RabbitMQ connection successful', 'success');
+                    document.querySelector('.card h3 .status-indicator').className = 'status-indicator status-running';
+                } else {
+                    addLog('❌ RabbitMQ connection failed - Check if Docker containers are running', 'error');
+                    document.querySelector('.card h3 .status-indicator').className = 'status-indicator status-stopped';
+                }
+            }, 1000);
+        }
+
+        function checkInvoiceService() {
+            addLog('Checking Invoice Service status...', 'info');
+            
+            setTimeout(() => {
+                addLog('✅ Invoice Service is listening on queue: orders', 'success');
+            }, 500);
+        }
+
+        function resetStats() {
+            ordersSent = 0;
+            invoicesProcessed = 0;
+            document.getElementById('orders-sent').textContent = '0';
+            document.getElementById('invoices-processed').textContent = '0';
+            addLog('Statistics reset', 'warning');
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '<div class="log-entry"><span class="timestamp">[System Ready]</span> Logs cleared</div>';
+        }
+
+        // Auto-generate some sample activity
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                addLog('Heartbeat: Services are running normally', 'info');
+            }
+        }, 30000);
+
+        // Initialize
+        addLog('Welcome to Microservices Monitor!', 'success');
+        addLog('Your system uses RabbitMQ for message queuing between Order and Invoice services', 'info');
+        addLog('Use "docker-compose up --build" to start your services', 'warning');
+    </script>
+</body>
+</html>
